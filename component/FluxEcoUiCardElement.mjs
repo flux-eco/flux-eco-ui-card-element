@@ -7,7 +7,6 @@
  */
 
 
-
 export class FluxEcoUiCardElement extends HTMLElement {
     #stateProcessor;
     /**
@@ -20,6 +19,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
      * @property {string} coverImageUrl
      * @property {string} title
      * @property {string} description
+     * @property {boolean} [clicked=false]
      *
      * @type {FluxEcoUiCardElementState}
      */
@@ -43,7 +43,13 @@ export class FluxEcoUiCardElement extends HTMLElement {
             coverImageUrl: "",
             title: "",
             description: "",
+            clicked: false
         }
+
+        this.addEventListener('click', e => {
+            this.changeState({"clicked": true});
+        });
+
         this.#structureElements = this.#createStructureElements();
 
         this.#shadow = this.attachShadow({mode: 'closed'});
@@ -112,6 +118,10 @@ export class FluxEcoUiCardElement extends HTMLElement {
 
     #applyAttributeStateChanged(attributeName, attributeValue) {
         const applyChanged = {};
+        applyChanged.clicked = (attributeValue) => {
+
+        }
+
         applyChanged.coverImageUrl = (attributeValue) => {
             const img = document.createElement("img");
             img.src = attributeValue;
@@ -144,7 +154,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
     changeState(stateSubset) {
         const newState = structuredClone(this.#state);
         Object.entries(newState).forEach(([attributeName, attributeState]) => {
-            if(stateSubset.hasOwnProperty(attributeName)) {
+            if (stateSubset.hasOwnProperty(attributeName)) {
                 newState[attributeName] = stateSubset[attributeName];
             }
         });
@@ -161,7 +171,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
      * @param {string} subscriberId
      * @param {FluxEcoSubscription} subscription
      */
-    subscribeToStateChanged(subscriberId,subscription) {
+    subscribeToStateChanged(subscriberId, subscription) {
         this.#subscribers[subscriberId] = subscription;
     }
 
@@ -169,7 +179,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
      * @param {string} subscriberId
      */
     unSubscribeFromStateChanged(subscriberId) {
-        if(this.#subscribers.hasOwnProperty(subscriberId)) {
+        if (this.#subscribers.hasOwnProperty(subscriberId)) {
             delete this.#subscribers[subscriberId];
         }
     }

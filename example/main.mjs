@@ -3,7 +3,6 @@ import {FluxEcoObjectProcessor} from "/components/flux-eco/FluxEcoObjectProcesso
 
 
 const cssFile = await (await fetch("/components/flux-eco-ui-card-element/style.css")).text();
-
 const styleElement = document.createElement("style");
 styleElement.textContent = cssFile
 
