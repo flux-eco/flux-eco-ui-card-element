@@ -47,7 +47,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
         }
 
         this.addEventListener('click', e => {
-            this.changeStateAttributes({"clicked": true});
+            this.transistStateAttributes({"clicked": true});
         });
 
         this.#structureElements = this.#createStructureElements();
@@ -57,7 +57,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
         this.#shadow.appendChild(this.#createStructure(this.#structureElements))
 
 
-        this.changeStateAttributes(state)
+        this.transistStateAttributes(state)
     }
 
     /**
@@ -155,7 +155,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
     }
 
 
-    changeStateAttributes(targetStateAttributeValues) {
+    transistStateAttributes(targetStateAttributeValues) {
         const targetState = structuredClone(this.#state);
         Object.entries(targetState).forEach(([attributeName, currentAttributeState]) => {
             if (targetStateAttributeValues.hasOwnProperty(attributeName)) {
@@ -182,7 +182,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
     /**
      * @param {string} subscriberId
      */
-    unSubscribeFromChangingState(subscriberId) {
+    unSubscribeFromStateTransition(subscriberId) {
         if (this.#subscribers.hasOwnProperty(subscriberId)) {
             delete this.#subscribers[subscriberId];
         }
