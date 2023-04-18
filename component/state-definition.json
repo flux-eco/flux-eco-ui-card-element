@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "coverImageUrl": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "coverImageUrl",
+    "url"
+  ]
+}

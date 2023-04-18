@@ -1,0 +1,26 @@
+{
+  "/index.html": {
+    "pathType": "file",
+    "contentType": "text/html"
+  },
+  "/main.mjs": {
+    "pathType": "file",
+    "contentType": "application/javascript"
+  },
+  "/state-schema.json": {
+    "pathType": "file",
+    "contentType": "application/json"
+  },
+  "/components/flux-eco-ui-card-element/FluxEcoUiCardElement.mjs": {
+    "pathType": "file",
+    "contentType": "application/javascript"
+  },
+  "/components/flux-eco-ui-card-element/style.css": {
+    "pathType": "file",
+    "contentType": "text/css"
+  },
+  "/components/flux-eco/FluxEcoObjectProcessor.mjs": {
+    "pathType": "file",
+    "contentType": "application/javascript"
+  }
+}
