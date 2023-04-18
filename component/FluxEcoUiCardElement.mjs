@@ -3,7 +3,7 @@
  * @typedef {object} FluxEcoSubscription
  * @property {function} onchange
  * @property {array} attributeFilter - value: an attributeName or a function(changedAttributeNames, currentState)
- * @property {function} isChangeRelevant
+ * @property {function} isTransitionRelevant
  */
 
 
@@ -29,7 +29,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
 
     /**
      * @param styleElement
-     * @param {{function} isValid(state), } stateProcessor
+     * @param {{function} stateIsValid(state), transitionIsValid(attributeName, currentAttributeState)} stateProcessor
      * @param {FluxEcoUiCardElementState} state
      */
     constructor(
@@ -47,7 +47,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
         }
 
         this.addEventListener('click', e => {
-            this.changeState({"clicked": true});
+            this.changeStateAttributes({"clicked": true});
         });
 
         this.#structureElements = this.#createStructureElements();
@@ -57,7 +57,7 @@ export class FluxEcoUiCardElement extends HTMLElement {
         this.#shadow.appendChild(this.#createStructure(this.#structureElements))
 
 
-        this.changeState(state)
+        this.changeStateAttributes(state)
     }
 
     /**
@@ -118,10 +118,6 @@ export class FluxEcoUiCardElement extends HTMLElement {
 
     #applyAttributeStateChanged(attributeName, attributeValue) {
         const applyChanged = {};
-        applyChanged.clicked = (attributeValue) => {
-
-        }
-
         applyChanged.coverImageUrl = (attributeValue) => {
             const img = document.createElement("img");
             img.src = attributeValue;
@@ -138,31 +134,39 @@ export class FluxEcoUiCardElement extends HTMLElement {
     }
 
 
-    #applyAndPublishStateChanged(state) {
-        const changedAttributeNames = [];
-        Object.entries(state).forEach(([attributeName, attributeValue]) => {
+    async #publishStateTransitionAndApplyTargetState(targetState) {
+
+        const transitionRelevantAttributeNames = [];
+        Object.entries(targetState).forEach(([attributeName, attributeValue]) => {
             if (this.#stateProcessor.attributeValueIsEqual(this.#state, attributeName, attributeValue) === false) {
-                this.#applyAttributeStateChanged(attributeName, attributeValue);
-                changedAttributeNames.push(...attributeName)
+                transitionRelevantAttributeNames.push(...attributeName)
             }
         });
-        this.#state = state;
-        this.publishStateChanged(changedAttributeNames, state);
+
+        //@see https://github.com/fluxapps/fluxtasks/issues/58#issuecomment-1513669350
+        await this.publishStateTransition(transitionRelevantAttributeNames, targetState);
+
+        if(this.#stateProcessor.stateIsValid(targetState)) {
+            transitionRelevantAttributeNames.forEach((attributeName) => {
+                this.#applyAttributeStateChanged(attributeName, targetState[attributeName]);
+            });
+            this.#state = targetState;
+        }
     }
 
 
-    changeState(stateSubset) {
-        const newState = structuredClone(this.#state);
-        Object.entries(newState).forEach(([attributeName, attributeState]) => {
-            if (stateSubset.hasOwnProperty(attributeName)) {
-                newState[attributeName] = stateSubset[attributeName];
+    changeStateAttributes(targetStateAttributeValues) {
+        const targetState = structuredClone(this.#state);
+        Object.entries(targetState).forEach(([attributeName, currentAttributeState]) => {
+            if (targetStateAttributeValues.hasOwnProperty(attributeName)) {
+                this.#stateProcessor.isTransitionValid(attributeName, currentAttributeState)
+                {
+                    targetState[attributeName] = targetStateAttributeValues[attributeName];
+                }
             }
         });
-        if (this.#stateProcessor.isValid(newState) === false) {
-            throw new Error(["invalid state", newState].join(" "))
-        }
-        if (this.#stateProcessor.isEqual(this.#state, newState) === false) {
-            this.#applyAndPublishStateChanged(newState)
+        if (this.#stateProcessor.isEqual(this.#state, targetState) === false) {
+            this.#publishStateTransitionAndApplyTargetState(targetState)
         }
     }
 
@@ -171,20 +175,20 @@ export class FluxEcoUiCardElement extends HTMLElement {
      * @param {string} subscriberId
      * @param {FluxEcoSubscription} subscription
      */
-    subscribeToStateChanged(subscriberId, subscription) {
+    subscribeToStateTransition(subscriberId, subscription) {
         this.#subscribers[subscriberId] = subscription;
     }
 
     /**
      * @param {string} subscriberId
      */
-    unSubscribeFromStateChanged(subscriberId) {
+    unSubscribeFromChangingState(subscriberId) {
         if (this.#subscribers.hasOwnProperty(subscriberId)) {
             delete this.#subscribers[subscriberId];
         }
     }
 
-    publishStateChanged(changedAttributeNames, state) {
+    publishStateTransition(changedAttributeNames, state) {
         Object.entries(this.#subscribers).forEach(([subscriberId, subscription]) => {
             //todo
             //subscription.isChangeRelevant(changedAttributeNames, state)
